@@ -1,9 +1,10 @@
 var squares = new Array();
 
 const CREATE_FREQ = 1500; // 1.5 sec
-const MAX_SPEED = 4; // 4px
-const SQUARE_WIDTH = 20;
+const MAX_SPEED = 1; // 1px
+const SQUARE_WIDTH = 30;
 var createOn = now() + getRandomInt(1000, CREATE_FREQ);
+var score = 0;
 
 function now() {
     return new Date().getTime();
@@ -40,7 +41,7 @@ function recalc() {
         squares.push(createNewSquare(canvas));
         createOn = now() + getRandomInt(1000, CREATE_FREQ);
     }
-
+    
     // move
     squares.forEach(function(s) {
         s.y += s.speed;
@@ -49,7 +50,6 @@ function recalc() {
     squares = squares.filter(function(s) {
         return s.y < canvas.clientHeight;
     });
-
 }
 
 function render() {
@@ -70,4 +70,28 @@ function animate() {
     requestAnimationFrame(animate);
 }
 
-document.body.onload = animate;
+function canvasClick(event) {
+    var canvas = document.getElementById('canvas');
+    var relativeX = event.clientX - canvas.offsetLeft;
+    var relativeY = event.clientY - canvas.offsetTop;
+
+    squares = squares.filter(function(s) {
+        if (inSquare(s, relativeX, relativeY)) {
+            score++;
+            document.getElementById('score').innerText = score;
+            // do not copy
+            return false;
+        }
+        return true;
+    });
+}
+
+function inSquare(s, x, y) {
+    console.log(s, x, y);
+    return s.x <= x && x <= (s.x + s.size) && s.y <= y && y <= (s.y + s.size);
+}
+
+document.body.onload = function() {
+    animate();
+    document.getElementById('canvas').onclick = canvasClick;
+};
