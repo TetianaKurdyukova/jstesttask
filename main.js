@@ -1,6 +1,7 @@
 const CREATE_FREQ = 1500; // 1.5 sec
 const MAX_SPEED = 5; // 5px
 const SQUARE_WIDTH = 30;
+const EXPLODE_STEPS = 8;
 
 var squares = new Array();
 var createOn = now() + getRandomInt(1000, CREATE_FREQ);
@@ -31,7 +32,9 @@ function createNewSquare(canvas) {
         color: getRandomColor(),
         speed: getRandomInt(1, MAX_SPEED),
         x: getRandomInt(0, canvas.clientWidth - SQUARE_WIDTH),
-        y: 0
+        y: 0,
+        exploding: false,
+        explodeStep: EXPLODE_STEPS
     };
 }
 
@@ -43,15 +46,20 @@ function recalc() {
         squares.push(createNewSquare(canvas));
         createOn = now() + getRandomInt(1000, CREATE_FREQ);
     }
-    
-    // move
-    squares.forEach(function(s) {
-        s.y += s.speed;
-    });
-    
+
     // clean
     squares = squares.filter(function(s) {
-        return s.y < canvas.clientHeight;
+        return s.y < canvas.clientHeight && s.explodeStep > 0;
+    });
+    
+    squares.forEach(function(s) {
+        // move
+        s.y += s.speed;
+        
+        // animate explodes
+        if (s.exploding && s.explodeStep > 0) {
+            s.explodeStep--;
+        }
     });
 }
 
@@ -59,11 +67,17 @@ function render() {
     var canvas = document.getElementById('canvas');
     var ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.clientWidth, canvas.clientWidth);
+    var img = document.getElementById('bomb');
     
     squares.forEach(function(s) {
-        ctx.fillStyle = s.color;
-        // x, y, size_left, size_top
-        ctx.fillRect(s.x, s.y, s.size, s.size);
+        if (!s.exploding) {
+            ctx.fillStyle = s.color;
+            // x, y, size_left, size_top
+            ctx.fillRect(s.x, s.y, s.size, s.size);
+        } else {
+            var xOffset = (EXPLODE_STEPS - 1) * SQUARE_WIDTH - SQUARE_WIDTH * s.explodeStep;
+            ctx.drawImage(img, xOffset, 0, SQUARE_WIDTH, SQUARE_WIDTH, s.x, s.y, s.size, s.size);
+        }
     });
 }
 
@@ -74,19 +88,23 @@ function animate() {
     requestAnimationFrame(animate);  
 }
 
+function startExploding(s) {
+    score++;
+    document.getElementById('score').innerText = score;
+    
+    s.exploding = true;
+    s.speed = 0;
+}
+
 function canvasClick(event) {
     var canvas = document.getElementById('canvas');
     var relativeX = event.clientX - canvas.offsetLeft;
     var relativeY = event.clientY - canvas.offsetTop;
 
-    squares = squares.filter(function(s) {
+    squares.forEach(function(s) {
         if (inSquare(s, relativeX, relativeY)) {
-            score++;
-            document.getElementById('score').innerText = score;
-            // do not copy
-            return false;
+            startExploding(s);
         }
-        return true;
     });
 }
 
