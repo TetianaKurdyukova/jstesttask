@@ -1,10 +1,12 @@
-var squares = new Array();
-
 const CREATE_FREQ = 1500; // 1.5 sec
-const MAX_SPEED = 1; // 1px
+const MAX_SPEED = 5; // 5px
 const SQUARE_WIDTH = 30;
+
+var squares = new Array();
 var createOn = now() + getRandomInt(1000, CREATE_FREQ);
 var score = 0;
+// flag controlling if the animation will continue or stop
+var continueAnimating = true;
 
 function now() {
     return new Date().getTime();
@@ -46,6 +48,7 @@ function recalc() {
     squares.forEach(function(s) {
         s.y += s.speed;
     });
+    
     // clean
     squares = squares.filter(function(s) {
         return s.y < canvas.clientHeight;
@@ -54,7 +57,7 @@ function recalc() {
 
 function render() {
     var canvas = document.getElementById('canvas');
-    var ctx = canvas.getContext('2d');  
+    var ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.clientWidth, canvas.clientWidth);
     
     squares.forEach(function(s) {
@@ -65,9 +68,10 @@ function render() {
 }
 
 function animate() {
-    recalc();
+    if(!continueAnimating){return;}
+    recalc();    
     render();
-    requestAnimationFrame(animate);
+    requestAnimationFrame(animate);  
 }
 
 function canvasClick(event) {
@@ -87,11 +91,30 @@ function canvasClick(event) {
 }
 
 function inSquare(s, x, y) {
-    console.log(s, x, y);
     return s.x <= x && x <= (s.x + s.size) && s.y <= y && y <= (s.y + s.size);
 }
 
-document.body.onload = function() {
+function startGame() {
+    score = 0;
+    document.getElementById('score').innerText = score;
+
+    squares = new Array();
+
+    var canvas = document.getElementById('canvas');
+    var ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.clientWidth, canvas.clientWidth);
+
+    continueAnimating = true;
     animate();
+}
+
+function stopGame() {
+    continueAnimating = false;
+}
+
+document.body.onload = function() {
     document.getElementById('canvas').onclick = canvasClick;
+    document.getElementById('start').onclick = startGame;
+    document.getElementById('stop').onclick = stopGame;    
 };
+
