@@ -98,18 +98,18 @@ function startGame() {
     score = 0;
     document.getElementById('score').innerText = score;
 
-    squares = new Array();
-
-    var canvas = document.getElementById('canvas');
-    var ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, canvas.clientWidth, canvas.clientWidth);
-
     continueAnimating = true;
     animate();
 }
 
 function stopGame() {
     continueAnimating = false;
+    
+    squares = new Array();
+
+    var canvas = document.getElementById('canvas');
+    var ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.clientWidth, canvas.clientWidth);
 }
 
 document.body.onload = function() {
